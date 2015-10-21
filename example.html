@@ -13,20 +13,160 @@
     <script type="text/javascript" src="deps/underscore.js"></script>
     <script type="text/javascript" src="deps/opt/jsv.js"></script>
     <script type="text/javascript" src="lib/jsonform.js"></script>
+    <script type="text/javascript" src="deps/opt/jquery.ui.core.js"></script>
+    <script type="text/javascript" src="deps/opt/jquery.ui.widget.js"></script>
+    <script type="text/javascript" src="deps/opt/jquery.ui.mouse.js"></script>
+    <script type="text/javascript" src="deps/opt/jquery.ui.sortable.js"></script>
+    <script type="text/javascript" src="deps/opt/spectrum.js"></script>
     <script type="text/javascript">
+
       $('form').jsonForm({
-        schema: {
-          name: {
-            type: 'string',
-            title: 'Name',
-            required: true
+        "schema": { //Data Model
+          character: {
+            type: "object",
+            title: "Character",
+            properties: {
+              name: {
+                type: 'string',
+                title: 'Name',
+                description: "Nickname allowed",
+                required: true,
+                default: "JoJo"
+              },
+              age: {
+                type: 'number',
+                description: "Your age",
+                title: 'Age',
+                maxLength: 3,
+                maximum: 130
+              },
+              birthdate: {
+                type: 'string',
+                title: 'Brith Date'
+              },
+              hair: {
+                type: 'string',
+                title: 'Hair Color',
+                format: 'color',
+                description: "Can be natural or what you dyed it"
+              },
+              job: {
+                type: 'string',
+                title: "Job",
+                description: "What you do",
+                required: true,
+                enum: [
+                  "Red Mage",
+                  "Black Mage",
+                  "White Mage",
+                  "Why aren't you a Mage?"
+                ],
+                default: "Black Mage"
+              },
+              story: {
+                type: "string",
+                title: "Backstory",
+                default: "Once upon a time..."
+              },
+              hardcore: {
+                type: 'boolean',
+                title: "Hardcore?"
+              },
+              "icon": {
+                "title": "Choose an icon",
+                "type": "string",
+                "enum": [
+                  "address-book",
+                  "archive",
+                  "balloon",
+                  "calendar",
+                  "camera",
+                  "cd",
+                  "disk",
+                  "heart",
+                  "home",
+                  "mail"
+                ]
+              }
+
+
+            },
+
           },
-          age: {
-            type: 'number',
-            title: 'Age'
+          enemy: {
+            type: "object",
+            title: "Enemy",
+            properties: {
+              name: {
+                type: 'string',
+                title: 'Name',
+                description: "Foul thing's name",
+                required: true
+              },
+              type: {
+                title: "Type",
+                description: "Kind of monster",
+                required: false,
+                enum: [
+                  "Ooze",
+                  "Golem",
+                  "Goblin"
+                ]
+              },
+              quantity: {
+                title: "Quantity",
+                description: "How many?",
+                required: true,
+                type: "integer",
+                minimum: 1,
+                maximum: 100
+              }
+            }
+          },
+          
+          
+          friends: {
+            type: "array",
+            items: {
+              type: "object",
+              title: "Friend",
+              properties: {
+                nick: {
+                  type: "string",
+                  title: "Nickname",
+                  required: true
+                },
+                gender: {
+                  type: "string",
+                  title: "Gender",
+                  enum: [ "male", "female", "alien" ]
+                },
+                age: {
+                  type: "integer",
+                  title: "Age"
+                },
+                pets: {
+                  type: 'array',
+                  items: {
+                    type: 'string',
+                    title: 'Pet Name',
+                    required: false
+                  }
+                }
+              }
+            }
           }
-        },
-        onSubmit: function (errors, values) {
+          
+
+        },//end Schema
+        // form: [
+        // {
+        //   key: "name",
+        //   type: "textarea"
+        // }
+        // ]
+
+        "onSubmit": function (errors, values) {
           if (errors) {
             $('#res').html('<p>I beg your pardon?</p>');
           }
@@ -35,7 +175,101 @@
               (values.age ? '<br/>You are ' + values.age + '.' : '') +
               '</p>');
           }
+        },
+
+        form: [
+        {
+          "type": "fieldset",
+          "title": "Character",
+          "items": [
+          { type: 'section',
+            title: 'basic info',
+            items: [
+              "character.name",
+              "character.age",
+              {key: 'character.birthdate', type: 'date' }
+            ]
+          },
+          {key: "character.hair"},
+          {key: "character.job", titleMap: {'Black Mage': "BM", 'Red Mage': 'RM', 'White Mage': 'WM', "Why aren't you a Mage?": '???' }},
+          { type: 'fieldset',
+            title: 'More character details...',
+            expandable: true, 
+            items: [
+            {key: "character.story", type: "textarea"},
+            {key: "character.hardcore", inlinetitle: 'Check this if you are hardcore'},
+            { 
+              key: 'character.icon',
+              "type": "imageselect",
+              // "imageWidth": 64,
+              // "imageHeight": 64,
+              // "imageButtonClass": "btn-inverse",
+              // "imagePrefix": "http://icons.iconarchive.com/icons/double-j-design/origami-colored-pencil/64/blue-",
+              // "imageSuffix": "-icon.png",
+              // "imageSelectorColumns": 4,
+              // "imageSelectorTitle": "Random choice"
+
+            }
+            ]
+          }
+          
+          ]
+        },
+        {
+          "key": "character.name",
+          "prepend": "I feel like",
+          "append": "today",
+        },
+        {
+          type: 'fieldset',
+          title: 'Friends',
+          items: [
+            {
+              type: 'tabarray',
+              items: { 
+                type: 'section', 
+                legend: '{{idx}}. {{value}}',
+                items: [
+                  {key: 'friends[].nick', valueInLegend: true},
+                  'friends[].gender',
+                  'friends[].age',
+                  {
+                    type: 'tabarray',
+                    items: {
+                      type: 'section',
+                      items: [
+                        'friends[].pets[]'
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            //  "friends"
+          ]
+        },
+        {
+          type: "fieldset",
+          title: "Enemy",
+          items: [
+            "enemy.name",
+            {key: "enemy.type", type: 'radios'},
+            { key: "enemy.quantity", type: "range"}
+          ]
+        }, 
+        {
+          type: 'actions',
+          items: 
+          [
+            {
+              type: "submit", title: "Roger!"
+            },
+            { 
+              type: 'button', title: 'Negative!' 
+            }
+          ]
         }
+        ]
       });
     </script>
   </body>
